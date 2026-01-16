@@ -7,12 +7,12 @@ const DEMO_MODE = false;
 // Demo user data (used when DEMO_MODE is true)
 const DEMO_USER = {
     id: 'demo-user-123',
-    email: 'demo@qrforge.com',
+    email: 'demo@qrbaker.com',
     user_metadata: { full_name: 'Demo User' }
 };
 
 const DEMO_USER_DATA = {
-    email: 'demo@qrforge.com',
+    email: 'demo@qrbaker.com',
     display_name: 'Demo User',
     plan: 'pro',  // Give demo user Pro plan to show all features
     qr_count: 3,
@@ -35,7 +35,7 @@ let demoQRHistory = [
         id: 'demo-qr-2',
         user_id: 'demo-user-123',
         type: 'dynamic',
-        content: 'https://qrforge.com/r.html?code=DemoLink',
+        content: 'https://qrbaker.com/r.html?code=DemoLink',
         label: 'My Campaign',
         data_url: '',
         is_dynamic: true,

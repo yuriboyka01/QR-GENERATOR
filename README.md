@@ -1,4 +1,4 @@
-# 🔲 QRForge - Professional QR Code SaaS Platform
+# 🔲 QR Baker - Professional QR Code SaaS Platform
 
 A production-ready, multi-page QR Code SaaS web application with authentication, pricing plans, dashboard, and user-scoped data persistence.
 
@@ -131,7 +131,7 @@ cd "c:\Users\welcome\Desktop\qr app"
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/qrforge.git
+git remote add origin https://github.com/YOUR_USERNAME/qrbaker.git
 git push -u origin main
 ```
 
