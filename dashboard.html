@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QRForge Dashboard - Generate and manage your QR codes">
+    <title>Dashboard - QRForge</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Dashboard Layout -->
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">QR</div>
+                    <span>QRForge</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="#" class="active">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            QR Generator
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#history-section">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            QR History
+                        </a>
+                    </li>
+                    <li>
+                        <a href="pricing.html">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            Upgrade Plan
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">--</div>
+                    <div class="user-details">
+                        <div class="user-name" id="user-name">Loading...</div>
+                        <div class="user-plan" id="user-plan">Free Plan</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>QR Generator</h1>
+                <div class="header-actions">
+                    <button class="btn btn-ghost" id="logout-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-body">
+                <!-- Plan Limit Banner -->
+                <div class="limit-banner" id="limit-banner" style="display: none;">
+                    <div class="limit-banner-content">
+                        <h3 id="limit-title">You're on the Free plan</h3>
+                        <p id="limit-message">You've used <span id="qr-used">0</span> of <span id="qr-limit">5</span> QR
+                            codes this month.</p>
+                    </div>
+                    <a href="pricing.html" class="btn btn-primary">Upgrade Now</a>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon primary">📊</div>
+                        </div>
+                        <div class="stat-value" id="stat-total">0</div>
+                        <div class="stat-label">Total QR Codes</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon success">✅</div>
+                        </div>
+                        <div class="stat-value" id="stat-remaining">5</div>
+                        <div class="stat-label">Remaining This Month</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon info">🔗</div>
+                        </div>
+                        <div class="stat-value" id="stat-urls">0</div>
+                        <div class="stat-label">URL QR Codes</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon warning">📶</div>
+                        </div>
+                        <div class="stat-value" id="stat-wifi">0</div>
+                        <div class="stat-label">Wi-Fi QR Codes</div>
+                    </div>
+                </div>
+
+                <!-- QR Generator Section -->
+                <div class="generator-section">
+                    <div class="generator-card">
+                        <h2>Create New QR Code</h2>
+
+                        <!-- Tabs -->
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="url">URL</button>
+                            <button class="tab-btn" data-tab="dynamic">Dynamic URL</button>
+                            <button class="tab-btn" data-tab="vcard">vCard</button>
+                            <button class="tab-btn" data-tab="text">Text</button>
+                            <button class="tab-btn" data-tab="wifi">Wi-Fi</button>
+                        </div>
+
+                        <!-- URL Tab -->
+                        <div id="url-tab" class="tab-panel active">
+                            <div class="form-group">
+                                <label for="url-input" class="form-label">Enter URL</label>
+                                <input type="url" id="url-input" class="form-input" placeholder="https://example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="url-label" class="form-label">Label (optional)</label>
+                                <input type="text" id="url-label" class="form-input" placeholder="My Website">
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="generateQR('url')">Generate QR
+                                Code</button>
+                        </div>
+
+                        <!-- Dynamic URL Tab (Editable) -->
+                        <div id="dynamic-tab" class="tab-panel">
+                            <div class="alert alert-success" style="margin-bottom: var(--space-4);">
+                                <strong>✨ Dynamic QR Code</strong> - You can change the destination URL anytime after
+                                creating!
+                            </div>
+                            <div class="form-group">
+                                <label for="dynamic-url" class="form-label">Destination URL</label>
+                                <input type="url" id="dynamic-url" class="form-input" placeholder="https://example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="dynamic-label" class="form-label">Label</label>
+                                <input type="text" id="dynamic-label" class="form-input" placeholder="My Campaign Link">
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="generateQR('dynamic')">Generate Dynamic
+                                QR Code</button>
+                        </div>
+
+                        <!-- vCard Tab -->
+                        <div id="vcard-tab" class="tab-panel">
+                            <div class="form-group">
+                                <label class="form-label">Contact Details</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <input type="text" id="vcard-first-name" class="form-input"
+                                        placeholder="First Name">
+                                    <input type="text" id="vcard-last-name" class="form-input" placeholder="Last Name">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="tel" id="vcard-phone" class="form-input" placeholder="Phone Number">
+                            </div>
+                            <div class="form-group">
+                                <input type="email" id="vcard-email" class="form-input" placeholder="Email Address">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="vcard-company" class="form-input" placeholder="Company">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="vcard-job" class="form-input" placeholder="Job Title">
+                            </div>
+                            <div class="form-group">
+                                <input type="url" id="vcard-website" class="form-input" placeholder="Website">
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="generateQR('vcard')">Generate vCard
+                                QR</button>
+                        </div>
+
+                        <!-- Text Tab -->
+                        <div id="text-tab" class="tab-panel">
+                            <div class="form-group">
+                                <label for="text-input" class="form-label">Enter Text</label>
+                                <textarea id="text-input" class="form-input" rows="4"
+                                    placeholder="Enter any text..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="text-label" class="form-label">Label (optional)</label>
+                                <input type="text" id="text-label" class="form-input" placeholder="My Note">
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="generateQR('text')">Generate QR
+                                Code</button>
+                        </div>
+
+                        <!-- Wi-Fi Tab -->
+                        <div id="wifi-tab" class="tab-panel">
+                            <div class="form-group">
+                                <label for="wifi-ssid" class="form-label">Network Name (SSID)</label>
+                                <input type="text" id="wifi-ssid" class="form-input" placeholder="MyNetwork">
+                            </div>
+                            <div class="form-group">
+                                <label for="wifi-password" class="form-label">Password</label>
+                                <input type="text" id="wifi-password" class="form-input" placeholder="password123">
+                            </div>
+                            <div class="form-group">
+                                <label for="wifi-encryption" class="form-label">Security Type</label>
+                                <select id="wifi-encryption" class="form-select">
+                                    <option value="WPA">WPA/WPA2</option>
+                                    <option value="WEP">WEP</option>
+                                    <option value="nopass">None (Open)</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="generateQR('wifi')">Generate QR
+                                Code</button>
+                        </div>
+
+                        <!-- Branding Options -->
+                        <div class="branding-section" id="branding-section"
+                            style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--gray-200);">
+                            <label class="form-label"
+                                style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="use-logo"
+                                    onchange="if(currentQRData) generateQR(currentQRData.type)">
+                                <span>Add ZSOS Logo to QR Code</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- QR Preview -->
+                    <div class="qr-preview-card">
+                        <h3>Preview</h3>
+                        <div class="qr-preview" id="qr-preview">
+                            <div class="qr-placeholder" id="qr-placeholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
+                                <p>Your QR code will appear here</p>
+                            </div>
+                            <div id="qrcode"></div>
+                        </div>
+                        <div class="qr-actions">
+                            <button class="btn btn-secondary" id="download-btn" onclick="downloadQR()" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download PNG
+                            </button>
+                            <button class="btn btn-primary" id="save-btn" onclick="saveQR()" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Chart -->
+                <div class="card" style="margin-bottom: var(--space-6);">
+                    <h3 style="font-size: 1.1rem; margin-bottom: var(--space-4);">Analytics Overview</h3>
+                    <div style="height: 250px;">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- QR History Section -->
+                <div class="history-section" id="history-section">
+                    <div class="history-header">
+                        <h2>Recent QR Codes</h2>
+                        <button class="btn btn-ghost" onclick="loadQRHistory()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+
+                    <div class="history-grid" id="history-grid">
+                        <!-- QR history cards will be inserted here -->
+                        <div class="empty-state" id="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <h3>No QR codes yet</h3>
+                            <p>Create your first QR code above to get started!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Sidebar Toggle -->
+    <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+
+    <!-- Firebase SDKs -->
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/qrcode.min.js"></script>
+    <script src="js/logo.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Log in to QRForge - Access your QR code dashboard">
+    <title>Log In - QRForge</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">QR</div>
+                <span>QRForge</span>
+            </a>
+            <h1>Welcome back</h1>
+            <p>Log in to your account to continue</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="error-alert" class="alert alert-error hidden"></div>
+
+        <!-- Login Form -->
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" id="email" class="form-input" placeholder="you@example.com" autocomplete="email"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="Enter your password"
+                    autocomplete="current-password" required>
+                <div class="form-hint" style="text-align: right;">
+                    <a href="#" id="forgot-password-link">Forgot password?</a>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn">
+                <span class="btn-text">Log In</span>
+                <span class="spinner hidden"></span>
+            </button>
+        </form>
+
+        <div class="auth-divider">or</div>
+
+        <!-- Google Login (Temporarily disabled during migration) -->
+        <!-- 
+        <button class="btn btn-secondary btn-block" id="google-login-btn" style="opacity: 0.5; cursor: not-allowed;" title="Coming soon">
+            Coming soon
+        </button>
+        -->
+
+        <div class="auth-footer">
+            Don't have an account? <a href="signup.html">Sign up free</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        redirectIfAuth('dashboard.html');
+
+        // DOM Elements
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('login-btn');
+        const errorAlert = document.getElementById('error-alert');
+        const forgotPasswordLink = document.getElementById('forgot-password-link');
+
+
+        // Show error
+        function showError(message) {
+            errorAlert.textContent = message;
+            errorAlert.classList.remove('hidden');
+        }
+
+        // Hide error
+        function hideError() {
+            errorAlert.classList.add('hidden');
+        }
+
+        // Set loading state
+        function setLoading(loading) {
+            loginBtn.disabled = loading;
+            loginBtn.querySelector('.btn-text').textContent = loading ? 'Logging in...' : 'Log In';
+            loginBtn.querySelector('.spinner').classList.toggle('hidden', !loading);
+        }
+
+        // Handle login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showError('Please fill in all fields.');
+                return;
+            }
+
+            setLoading(true);
+
+            const result = await signIn(email, password);
+
+            if (result.success) {
+                window.location.href = 'dashboard.html';
+            } else {
+                setLoading(false);
+
+                // Handle unverified email specifically
+                if (result.error.includes('Email not confirmed')) {
+                    showError('Please verified your email address before logging in.');
+
+                    // Add resend link if not already there
+                    if (!document.getElementById('resend-link-container')) {
+                        const resendContainer = document.createElement('div');
+                        resendContainer.id = 'resend-link-container';
+                        resendContainer.style.marginTop = '10px';
+                        resendContainer.style.textAlign = 'center';
+                        resendContainer.innerHTML = `
+                            <a href="#" id="resend-link" style="color: var(--primary); font-size: 0.9rem;">Resend confirmation email</a>
+                        `;
+                        errorAlert.parentNode.insertBefore(resendContainer, errorAlert.nextSibling);
+
+                        document.getElementById('resend-link').addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            const link = e.target;
+                            if (link.dataset.sending === 'true') return;
+
+                            link.textContent = 'Sending...';
+                            link.dataset.sending = 'true';
+                            link.style.opacity = '0.7';
+
+                            const resendResult = await resendConfirmationEmail(email);
+
+                            if (resendResult.success) {
+                                link.textContent = 'Confirmation email sent!';
+                                link.style.color = 'var(--success)';
+                                link.style.cursor = 'default';
+                            } else {
+                                link.textContent = 'Resend confirmation email';
+                                link.dataset.sending = 'false';
+                                link.style.opacity = '1';
+                                alert('Failed to resend: ' + resendResult.error);
+                            }
+                        });
+                    }
+                } else {
+                    showError(result.error);
+                    // Remove resend link if it exists (from previous error)
+                    const existingResend = document.getElementById('resend-link-container');
+                    if (existingResend) existingResend.remove();
+                }
+            }
+        });
+
+        // Handle forgot password
+        forgotPasswordLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const email = emailInput.value.trim();
+
+            if (!email) {
+                showError('Please enter your email address first.');
+                emailInput.focus();
+                return;
+            }
+
+            const result = await resetPassword(email);
+
+            if (result.success) {
+                alert('Password reset email sent! Check your inbox.');
+            } else {
+                showError(result.error);
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>

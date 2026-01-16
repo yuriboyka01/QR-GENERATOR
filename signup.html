@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your free QRForge account - Start generating QR codes today">
+    <title>Sign Up - QRForge</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">QR</div>
+                <span>QRForge</span>
+            </a>
+            <h1>Create your account</h1>
+            <p>Start generating QR codes for free</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="error-alert" class="alert alert-error hidden"></div>
+
+        <!-- Success Alert -->
+        <div id="success-alert" class="alert alert-success hidden"></div>
+
+        <!-- Signup Form -->
+        <form id="signup-form">
+            <div class="form-group">
+                <label for="name" class="form-label">Full name</label>
+                <input type="text" id="name" class="form-input" placeholder="John Doe" autocomplete="name">
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" id="email" class="form-input" placeholder="you@example.com" autocomplete="email"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="Create a strong password"
+                    autocomplete="new-password" required minlength="6">
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="password-strength-bar"></div>
+                </div>
+                <p class="form-hint" id="password-hint">Use at least 8 characters, including uppercase, lowercase, and
+                    numbers.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password" class="form-label">Confirm password</label>
+                <input type="password" id="confirm-password" class="form-input" placeholder="Confirm your password"
+                    autocomplete="new-password" required>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: flex-start; gap: var(--space-3);">
+                <input type="checkbox" id="terms" required style="margin-top: 4px;">
+                <label for="terms" style="font-size: var(--font-size-sm); color: var(--gray-600); cursor: pointer;">
+                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="signup-btn">
+                <span class="btn-text">Create Account</span>
+                <span class="spinner hidden"></span>
+            </button>
+        </form>
+
+        <div class="auth-divider">or</div>
+
+        <!-- Google Signup (Temporarily disabled during migration) -->
+        <!--
+        <button class="btn btn-secondary btn-block" id="google-signup-btn" style="opacity: 0.5; cursor: not-allowed;" title="Coming soon">
+            Coming soon
+        </button>
+        -->
+
+        <div class="auth-footer">
+            Already have an account? <a href="login.html">Log in</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        redirectIfAuth('dashboard.html');
+
+        // DOM Elements
+        const signupForm = document.getElementById('signup-form');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const termsCheckbox = document.getElementById('terms');
+        const signupBtn = document.getElementById('signup-btn');
+        const errorAlert = document.getElementById('error-alert');
+        const successAlert = document.getElementById('success-alert');
+        const passwordStrengthBar = document.getElementById('password-strength-bar');
+        const passwordHint = document.getElementById('password-hint');
+
+
+        // Show error
+        function showError(message) {
+            errorAlert.textContent = message;
+            errorAlert.classList.remove('hidden');
+            successAlert.classList.add('hidden');
+        }
+
+        // Show success
+        function showSuccess(message) {
+            successAlert.textContent = message;
+            successAlert.classList.remove('hidden');
+            errorAlert.classList.add('hidden');
+        }
+
+        // Hide alerts
+        function hideAlerts() {
+            errorAlert.classList.add('hidden');
+            successAlert.classList.add('hidden');
+        }
+
+        // Set loading state
+        function setLoading(loading) {
+            signupBtn.disabled = loading;
+            signupBtn.querySelector('.btn-text').textContent = loading ? 'Creating account...' : 'Create Account';
+            signupBtn.querySelector('.spinner').classList.toggle('hidden', !loading);
+        }
+
+        // Update password strength indicator
+        passwordInput.addEventListener('input', (e) => {
+            const password = e.target.value;
+            const strength = checkPasswordStrength(password);
+
+            // Update strength bar
+            passwordStrengthBar.className = 'password-strength-bar';
+            if (password.length > 0) {
+                passwordStrengthBar.classList.add(strength);
+            }
+
+            // Update hint
+            const hints = {
+                weak: 'Weak password — add uppercase, numbers, or symbols',
+                medium: 'Medium strength — consider adding more characters',
+                strong: 'Strong password!'
+            };
+
+            if (password.length > 0) {
+                passwordHint.textContent = hints[strength];
+                passwordHint.style.color = strength === 'strong' ? 'var(--success)' :
+                    strength === 'medium' ? 'var(--warning)' : 'var(--error)';
+            } else {
+                passwordHint.textContent = 'Use at least 8 characters, including uppercase, lowercase, and numbers.';
+                passwordHint.style.color = 'var(--gray-500)';
+            }
+        });
+
+        // Handle signup form submission
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlerts();
+
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Validation
+            if (!email || !password || !confirmPassword) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match.');
+                confirmPasswordInput.focus();
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters long.');
+                passwordInput.focus();
+                return;
+            }
+
+            if (!termsCheckbox.checked) {
+                showError('Please accept the Terms of Service and Privacy Policy.');
+                return;
+            }
+
+            setLoading(true);
+
+            const result = await signUp(email, password, name);
+
+            if (result.success) {
+                // If session is null, it means email confirmation is required
+                if (!result.session && !DEMO_MODE) {
+                    showSuccess('Account created! Please check your email to confirm your account.');
+                    // Don't redirect immediately so they can read the message
+                } else {
+                    showSuccess('Account created successfully! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                }
+            } else {
+                showError(result.error);
+                setLoading(false);
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>
